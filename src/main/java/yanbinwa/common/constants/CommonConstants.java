@@ -13,4 +13,7 @@ public class CommonConstants
     public static final int SERVICE_STANDBY = 1;
     
     public static final int SEQUENTIAL_SUFFIX_LENGTH = 10;
+    
+    public static final int HTTP_CONNECTION_TIMEOUT = 60000;
+    public static final int HTTP_READ_TIMEOUT = 60000;
 }
