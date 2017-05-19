@@ -35,9 +35,6 @@ public class OrchestrationClientImpl implements OrchestrationClient
     /** 读取依赖的Znode */
     String depZnodePath;
     
-    /** orchestartion服务的子node */
-    String regZnodeChildPath;
-    
     /** zookeeper client 的实例 */
     ZooKeeper zk = null;
     
@@ -56,7 +53,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
     OrchestrationZnodeState zNodeState = OrchestrationZnodeState.OFFLINE;
     
     /** 当前运行状态 */
-    boolean isRunning = true;
+    boolean isRunning = false;
     
     /** 服务是否ready*/
     boolean isReady = false;
@@ -81,56 +78,77 @@ public class OrchestrationClientImpl implements OrchestrationClient
         {
             regZnodePath = null;
             depZnodePath = null;
-            regZnodeChildPath = null;
         }
         else
         {
             regZnodePath = zNodeInfoMap.get(OrchestrationClient.REGZNODEPATH_KEY);
             depZnodePath = zNodeInfoMap.get(OrchestrationClient.DEPZNODEPATH_KEY);
-            regZnodeChildPath = zNodeInfoMap.get(OrchestrationClient.REGZNODECHILDPATH_KEY);
         }
     }
     
     @Override
     public void start()
     {
-        /** 连接Zookeeper，创建相应的Znode，并监听其它服务创建的Znode */
-        zookeeperThread = new Thread(new Runnable() {
-
-            @Override
-            public void run()
-            {
-                zookeeperEventHandler();
-            }
+        if(!isRunning)
+        {
+            isRunning = true;
+            logger.info("Starting the orchestartion client ...");
             
-        });
-        zookeeperThread.start();
-        
-        /** 定期与zookeeper同步 */
-        zookeeperSync = new Thread(new Runnable(){
+            /** 连接Zookeeper，创建相应的Znode，并监听其它服务创建的Znode */
+            zookeeperThread = new Thread(new Runnable() {
 
-            @Override
-            public void run()
-            {
-                syncWithZookeeper();
-            }
+                @Override
+                public void run()
+                {
+                    zookeeperEventHandler();
+                }
+                
+            });
+            zookeeperThread.start();
             
-        });
-        zookeeperSync.start();
-        
+            /** 定期与zookeeper同步 */
+            zookeeperSync = new Thread(new Runnable(){
+
+                @Override
+                public void run()
+                {
+                    syncWithZookeeper();
+                }
+                
+            });
+            zookeeperSync.start();
+        }
+        else
+        {
+            logger.info("Orchestartion client has readly started...");
+        }        
     }
     
     @Override
     public void stop()
     {
-        isRunning = false;
-        if (zookeeperThread != null)
+        if (isRunning)
         {
-            zookeeperThread.interrupt();
+            isRunning = false;
+            logger.info("stopping the orchestartion client ...");
+            
+            if (zookeeperThread != null)
+            {
+                zookeeperThread.interrupt();
+            }
+            if (zookeeperSync != null)
+            {
+                zookeeperSync.interrupt();
+            }
+            
+            isRunning = false;
+            isReady = false;
+            zNodeState = OrchestrationZnodeState.OFFLINE;
+            depData = null;
         }
-        if (zookeeperSync != null)
+        else
         {
-            zookeeperSync.interrupt();
+            logger.info("Orchestartion client has readly stopped...");
         }
     }
     
@@ -138,7 +156,6 @@ public class OrchestrationClientImpl implements OrchestrationClient
     {
         while(isRunning)
         {
-            //五分钟同步一次
             WatchedEvent event = new WatchedEvent(Watcher.Event.EventType.NodeDataChanged, null, this.getDepZnodeChildPath());
             zookeeperEventQueue.offer(event);
             try
@@ -147,7 +164,14 @@ public class OrchestrationClientImpl implements OrchestrationClient
             } 
             catch (InterruptedException e)
             {
-                logger.info("Close this thread");
+                if(!isRunning)
+                {
+                    logger.info("Stop this thread");
+                }
+                else
+                {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -166,6 +190,20 @@ public class OrchestrationClientImpl implements OrchestrationClient
     {
         regRealZnodeChildPath = ZkUtil.createEphemeralZNode(zk, getRegZnodeChildPath(), zNodeServiceData.createJsonObject(), true);
     }
+    
+//    private void delZnodeForOnline() throws InterruptedException, KeeperException
+//    {
+//        if(regRealZnodeChildPath == null)
+//        {
+//            logger.error("Have not setup the child znode for register" + getRegZnodeChildPath());
+//        }
+//        else
+//        {
+//            logger.info("delZnodeForOnline: " + regRealZnodeChildPath);
+//            ZkUtil.deleteZnode(zk, regRealZnodeChildPath);
+//            regRealZnodeChildPath = null;
+//        }
+//    }
     
     private void zookeeperEventHandler()
     {
@@ -192,7 +230,10 @@ public class OrchestrationClientImpl implements OrchestrationClient
         {
             if(ZkUtil.checkZnodeExist(zk, regZnodePath) && ZkUtil.checkZnodeExist(zk, depZnodePath))
             {
-                setUpZnodeForOnline();
+                if(regRealZnodeChildPath == null || !ZkUtil.checkZnodeExist(zk, regRealZnodeChildPath))
+                {
+                    setUpZnodeForOnline();
+                }
                 zNodeState = OrchestrationZnodeState.ONLINE;
             }
             while(isRunning)
@@ -245,6 +286,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
      */
     private void handerZookeeperEventOffLine()
     {
+        logger.info("start zookeeper event handler for off line ...");
         try
         {
             ZkUtil.watchZnodeChange(zk, regZnodePath, zkWatcher);
@@ -256,6 +298,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
                 {
                     continue;
                 }
+                logger.debug("Get zk event at off line mode: " + event.toString());
                 if (event.getType() == Watcher.Event.EventType.None && event.getState() == Watcher.Event.KeeperState.SyncConnected)
                 {
                     logger.info("Connected to zookeeper success!");
@@ -291,6 +334,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
                 e.printStackTrace();
             }
         }
+        logger.info("end zookeeper event handler for off line ...");
     }
     
     /**
@@ -301,11 +345,13 @@ public class OrchestrationClientImpl implements OrchestrationClient
      */
     private void handerZookeeperEventOnLine()
     {
+        logger.info("Start zookeeper event handler for on line ...");
         try
         {
             //由offline转为online
-            if(!ZkUtil.checkZnodeExist(zk, getRegZnodeChildPath()))
+            if(regRealZnodeChildPath == null || !ZkUtil.checkZnodeExist(zk, regRealZnodeChildPath))
             {
+                //可能的情况是regZnode被删除了，但是regRealZnodeChildPath没有重置为null
                 setUpZnodeForOnline();
             }
             if(!ZkUtil.checkZnodeExist(zk, this.depZnodePath))
@@ -320,7 +366,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
             String depZnodeChildPath = getDepZnodeChildPath();
             ZkUtil.watchZnodeChange(zk, depZnodeChildPath, zkWatcher);
             
-            //先检查是否已经存在depZnodeChildPath了
+            //先检查是否已经存在depZnodeChildPath了，如果存在了，可以先获取一下
             if(ZkUtil.checkZnodeExist(zk, depZnodeChildPath))
             {
                 if(!this.isReady)
@@ -337,6 +383,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
                 {
                     continue;
                 }
+                logger.debug("Get zk event at on line mode: " + event.toString());
                 if (event.getType() == Watcher.Event.EventType.None && event.getState() == Watcher.Event.KeeperState.SyncConnected)
                 {
                     logger.info("Connected to zookeeper success!");
@@ -379,6 +426,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
                 e.printStackTrace();
             }
         }
+        logger.info("End zookeeper event handler for on line ...");
     }
     
     private void handleDepZnodeChildCreateEvent() throws KeeperException, InterruptedException

@@ -8,6 +8,7 @@ public interface OrchestrationClient extends ServiceLifeCycle
     public static final String REGZNODEPATH_KEY = "regZnodePath";
     public static final String REGZNODECHILDPATH_KEY = "regZnodeChildPath";
     public static final String DEPZNODEPATH_KEY = "depZnodePath";
+    public static final String ZOOKEEPER_HOSTPORT_KEY = "zookeeperHostport";
     
     public static final int ZKEVENT_QUEUE_TIMEOUT = 5000;
     public static final int ZKNODE_REGCHILDPATH_WAITTIME = 1000;
