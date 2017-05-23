@@ -34,6 +34,7 @@ public class ZkUtil
         catch (IOException e)
         {
             logger.error("Can not connect to zk with " + hostPort);
+            return null;
         }
         return zk;
     }

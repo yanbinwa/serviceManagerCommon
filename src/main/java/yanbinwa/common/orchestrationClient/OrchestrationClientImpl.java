@@ -156,8 +156,11 @@ public class OrchestrationClientImpl implements OrchestrationClient
     {
         while(isRunning)
         {
-            WatchedEvent event = new WatchedEvent(Watcher.Event.EventType.NodeDataChanged, null, this.getDepZnodeChildPath());
-            zookeeperEventQueue.offer(event);
+            if (zk != null)
+            {
+                WatchedEvent event = new WatchedEvent(Watcher.Event.EventType.NodeDataChanged, null, this.getDepZnodeChildPath());
+                zookeeperEventQueue.offer(event);
+            }
             try
             {
                 Thread.sleep(OrchestrationClient.ZK_SYNC_INTERVAL);
@@ -205,6 +208,31 @@ public class OrchestrationClientImpl implements OrchestrationClient
 //        }
 //    }
     
+    private void waitingForZookeeper()
+    {
+        logger.info("Waiting for the zookeeper...");
+        while(zk.getState() == ZooKeeper.States.CONNECTING && isRunning)
+        {
+            try
+            {
+                Thread.sleep(ZK_WAIT_INTERVAL);
+                logger.debug("Try to connection to zookeeper");
+            } 
+            catch (InterruptedException e)
+            {
+                if (!isRunning)
+                {
+                    logger.info("Stop this thread");
+                }
+                else
+                {
+                    e.printStackTrace();
+                }
+            }            
+        }
+        logger.info("Connected to the zookeeper " + zookeeperHostPort);
+    }
+    
     private void zookeeperEventHandler()
     {
         isRunning = true;
@@ -221,10 +249,14 @@ public class OrchestrationClientImpl implements OrchestrationClient
             }
         }
         zk = ZkUtil.connectToZk(zookeeperHostPort, zkWatcher);
-        if(zk == null)
+        if (zk == null)
         {
             logger.error("Can not connect to zookeeper: " + zookeeperHostPort);
             return;
+        }
+        if(zk.getState() == ZooKeeper.States.CONNECTING)
+        {
+            waitingForZookeeper();
         }
         try
         {
@@ -351,6 +383,8 @@ public class OrchestrationClientImpl implements OrchestrationClient
             //由offline转为online
             if(regRealZnodeChildPath == null || !ZkUtil.checkZnodeExist(zk, regRealZnodeChildPath))
             {
+                //在checkZnodeExist时会抛异常：KeeperErrorCode = Session expired for /regManageNode/ServiceC0000000265
+                //这里应该是zookeeper连接有问题了，所以需要进行重连
                 //可能的情况是regZnode被删除了，但是regRealZnodeChildPath没有重置为null
                 setUpZnodeForOnline();
             }
@@ -413,7 +447,38 @@ public class OrchestrationClientImpl implements OrchestrationClient
         } 
         catch (KeeperException e)
         {
-            e.printStackTrace();
+            if(e instanceof KeeperException.SessionExpiredException)
+            {
+                logger.info("zookeepr session is expired, need to reconnect");
+                if (zk != null)
+                {
+                    try
+                    {
+                        ZkUtil.closeZk(zk);
+                    } 
+                    catch (InterruptedException e1)
+                    {
+                        //do nothing
+                    }
+                }
+                isReady = false;
+                zNodeState = OrchestrationZnodeState.OFFLINE;
+                depData = null;
+                zk = ZkUtil.connectToZk(zookeeperHostPort, zkWatcher);
+                if (zk == null)
+                {
+                    logger.error("Can not connect to zookeeper: " + zookeeperHostPort);
+                    return;
+                }
+                if(zk.getState() == ZooKeeper.States.CONNECTING)
+                {
+                    waitingForZookeeper();
+                }
+            }
+            else
+            {
+                e.printStackTrace();
+            }
         } 
         catch (InterruptedException e)
         {

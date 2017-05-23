@@ -34,6 +34,11 @@ public class ZkUtilTest
         {
             fail("Can not create znode");
         }
+        if (zk.getState() == ZooKeeper.States.CONNECTING)
+        {
+            System.out.println("Can not connetion to zookeeper " + "192.168.56.17:2181");
+            return;
+        }
         try
         {            
             String path = "/manager";
