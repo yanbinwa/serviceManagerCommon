@@ -65,12 +65,6 @@ public class IKafkaConsumerWorker
         }
         props.put("value.deserializer", deserializerClass);
         
-        //option
-        String maxBlockMsStr = (String)kafkaConsumerProperties.get(IKafkaConsumer.MAX_BLOCK_MS_KEY);
-        if(null != maxBlockMsStr)
-        {
-            props.put("max.block.ms", Integer.parseInt(maxBlockMsStr));
-        }
         start();
     }
     

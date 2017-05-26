@@ -29,12 +29,12 @@ public class IKafkaProducerImpl implements IKafkaProducer
     boolean isRunning = false;
     IKafkaProducerWorker worker = null;
     
-    IKafkaProducerImpl(Map<String, String> kafkaProducerProperties, Set<String>topicList, String producerName)
+    public IKafkaProducerImpl(Map<String, String> kafkaProducerProperties, Set<String>topicList, String producerName)
     {
         this(kafkaProducerProperties, topicList, producerName, IKafkaProducer.DEFAULT_PARTITION_NUM);
     }
     
-    IKafkaProducerImpl(Map<String, String> kafkaProducerProperties, Set<String>topicList, String producerName, int partitionMask)
+    public IKafkaProducerImpl(Map<String, String> kafkaProducerProperties, Set<String>topicList, String producerName, int partitionMask)
     {
         if(topicList != null)
         {
