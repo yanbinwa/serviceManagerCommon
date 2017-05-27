@@ -1,5 +1,11 @@
 package yanbinwa.common.zNodedata;
 
+/**
+ * key: service group
+ * value: service belong to this servie group
+ * 这里的dependence是对于一个service的，而不是所有的dependence信息
+ */
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,14 +15,16 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ZNodeDependenceData implements ZNodeData
+import yanbinwa.common.constants.CommonConstants;
+
+public class ZNodeDependenceData
 {
 
     private static final Logger logger = Logger.getLogger(ZNodeDependenceData.class);
     
-    Map<String, Set<ZNodeServiceData>> dependenceData = new HashMap<String, Set<ZNodeServiceData>>();
+    Map<String, Set<ZNodeData>> dependenceData = new HashMap<String, Set<ZNodeData>>();
     
-    public ZNodeDependenceData(Map<String, Set<ZNodeServiceData>> dependenceData)
+    public ZNodeDependenceData(Map<String, Set<ZNodeData>> dependenceData)
     {
         this.dependenceData = dependenceData;
     }
@@ -26,7 +34,11 @@ public class ZNodeDependenceData implements ZNodeData
         loadFromJsonObject(obj);
     }
     
-    @Override
+    public Map<String, Set<ZNodeData>> getDependenceData()
+    {
+        return dependenceData;
+    }
+    
     public JSONObject createJsonObject()
     {
         if(dependenceData == null)
@@ -35,15 +47,15 @@ public class ZNodeDependenceData implements ZNodeData
         }
         
         JSONObject retObj = new JSONObject();
-        for(Map.Entry<String, Set<ZNodeServiceData>> entry : dependenceData.entrySet())
+        for(Map.Entry<String, Set<ZNodeData>> entry : dependenceData.entrySet())
         {
-            Set<ZNodeServiceData> zNodeServiceList = entry.getValue();
+            Set<ZNodeData> zNodeServiceList = entry.getValue();
             if (zNodeServiceList == null)
             {
                 continue;
             }
             JSONArray objArr = new JSONArray();
-            for(ZNodeServiceData zNodeService : zNodeServiceList)
+            for(ZNodeData zNodeService : zNodeServiceList)
             {
                 if (zNodeService == null)
                 {
@@ -56,7 +68,6 @@ public class ZNodeDependenceData implements ZNodeData
         return retObj;
     }
 
-    @Override
     public void loadFromJsonObject(JSONObject obj)
     {
         if (obj == null)
@@ -66,7 +77,7 @@ public class ZNodeDependenceData implements ZNodeData
         }
         if (dependenceData == null)
         {
-            dependenceData = new HashMap<String, Set<ZNodeServiceData>>();
+            dependenceData = new HashMap<String, Set<ZNodeData>>();
         }
         for(Object keyObj : obj.keySet())
         {
@@ -85,10 +96,10 @@ public class ZNodeDependenceData implements ZNodeData
             {
                 continue;
             }
-            Set<ZNodeServiceData> zNodeServiceList = dependenceData.get(key);
+            Set<ZNodeData> zNodeServiceList = dependenceData.get(key);
             if(zNodeServiceList == null)
             {
-                zNodeServiceList = new HashSet<ZNodeServiceData>();
+                zNodeServiceList = new HashSet<ZNodeData>();
                 dependenceData.put(key, zNodeServiceList);
             }
             for(int i = 0; i < valueObj.length(); i ++)
@@ -98,8 +109,16 @@ public class ZNodeDependenceData implements ZNodeData
                 {
                     continue;
                 }
-                ZNodeServiceData zNodeService = new ZNodeServiceData(zNodeServiceObj);
-                zNodeServiceList.add(zNodeService);
+                ZNodeData zNodeData = null;
+                if (zNodeServiceObj.has(CommonConstants.DATA_CONSUMER_TOPIC_INFO_KEY))
+                {
+                    zNodeData = new ZNodeServiceDataWithKafkaTopic(zNodeServiceObj);
+                }
+                else
+                {
+                    zNodeData = new ZNodeServiceData(zNodeServiceObj);
+                }
+                zNodeServiceList.add(zNodeData);
             }
         }
     }
@@ -125,16 +144,16 @@ public class ZNodeDependenceData implements ZNodeData
             return false;
         }
     }
-
+    
     @Override
     public int hashCode()
     {
-        return this.createJsonObject().toString().hashCode();
+        return createJsonObject().toString().hashCode();
     }
     
     @Override
     public String toString()
     {
-        return this.createJsonObject().toString();
+        return createJsonObject().toString();
     }
 }

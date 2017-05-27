@@ -8,7 +8,7 @@ public interface IKafkaConsumer extends ServiceLifeCycle
     public static final String DESERIALIZER_CLASS_KEY = "deserializerClass";
     public static final String MAX_BLOCK_MS_KEY = "maxBlockMs";
     public static final String GROUP_ID_KEY = "groupId";
-    public static final String LISTEN_TOPIC_KEY = "listenTopic";
+    public static final String LISTEN_TOPIC_KEY = "consumerTopic";
     
     public static final String DEFAULT_KAFKA_VALUE_DESERIALIZER_CLASS = "org.apache.kafka.common.serialization.StringDeserializer";
     public static final String DEFAULT_KAFKA_KEY_DESERIALIZER_CLASS = "org.apache.kafka.common.serialization.IntegerDeserializer";

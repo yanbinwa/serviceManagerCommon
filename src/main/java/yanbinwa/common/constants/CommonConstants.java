@@ -6,8 +6,11 @@ public class CommonConstants
     
     public static final String DATA_IP_KEY = "ip";
     public static final String DATA_SERVICENAME_KEY = "serviceName";
+    public static final String DATA_SERVICEGROUPNAME_KEY = "serviceGroupName";
     public static final String DATA_PORT_KEY = "port";
     public static final String DATA_ROOTURL_KEY = "rootUrl";
+    
+    public static final String DATA_CONSUMER_TOPIC_INFO_KEY = "consumerTopicInfo";
 
     public static final int SERVICE_ACTIVE = 0;
     public static final int SERVICE_STANDBY = 1;

@@ -147,7 +147,7 @@ public class ZkUtilTest
     @Test
     public void zNodeServiceDataTest()
     {
-        ZNodeServiceData zNodeData = new ZNodeServiceData("1", "1", 1, "1");
+        ZNodeServiceData zNodeData = new ZNodeServiceData("1", "1", "1", 1, "1");
         System.out.println(zNodeData.getPort());
     }
 
