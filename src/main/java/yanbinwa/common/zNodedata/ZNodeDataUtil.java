@@ -1,12 +1,9 @@
 package yanbinwa.common.zNodedata;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import yanbinwa.common.constants.CommonConstants;
@@ -15,73 +12,63 @@ public class ZNodeDataUtil
 {
     private static final Logger logger = Logger.getLogger(ZNodeDataUtil.class);
     
-    public static ZNodeData getZnodeData(JSONObject obj)
+    public static ZNodeServiceData getZnodeData(JSONObject obj)
     {
         if (obj == null)
         {
             return null;
         }
-        if(obj.has(CommonConstants.DATA_CONSUMER_TOPIC_INFO_KEY))
+        if(obj.has(CommonConstants.DATA_TOPIC_INFO_KEY))
         {
-            return new ZNodeServiceDataWithKafkaTopic(obj);
+            return new ZNodeServiceDataWithKafkaTopicImpl(obj);
         }
         else
         {
-            return new ZNodeServiceData(obj);
+            return new ZNodeServiceDataImpl(obj);
         }
     }
     
-    public static Map<String, Set<String>> getTopicGroupInfo(ZNodeDependenceData depData)
+    public static ZNodeDependenceData getZNodeDependenceData(JSONObject obj)
     {
-        if (depData == null)
+        if (obj == null)
         {
             return null;
         }
-        Map<String, Set<ZNodeData>> dependenceData = depData.getDependenceData();
-        Map<String, Set<String>> topicGroupToTopicMap = new HashMap<String, Set<String>>();
-        for(String serviceGroup : dependenceData.keySet())
+        if(!obj.has(CommonConstants.DATA_DEPENDENCE_DATA_KEY))
         {
-            Set<ZNodeData> serviceDataSet = dependenceData.get(serviceGroup);
-            for(ZNodeData serviceData : serviceDataSet)
+            return new ZNodeDependenceData(obj);
+        }
+        else
+        {
+            if (obj.has(CommonConstants.DATA_KAFKA_TOPIC_DATA_KEY))
             {
-                if(serviceData instanceof ZNodeServiceDataWithKafkaTopic)
-                {
-                    ZNodeServiceDataWithKafkaTopic zNodeServiceDataWithKafkaTopic = (ZNodeServiceDataWithKafkaTopic)serviceData;
-                    String topicInfoStr = zNodeServiceDataWithKafkaTopic.getConsumerTopicInfo();
-                    if (topicInfoStr == null)
-                    {
-                        logger.error("Topic info should not be null. ServiceGroup: " + serviceGroup + " and Service: " + serviceData);
-                        continue;
-                    }
-                    JSONObject topicInfo = new JSONObject(topicInfoStr);
-                    for(Object topicGroupObj : topicInfo.keySet())
-                    {
-                        if(topicGroupObj == null)
-                        {
-                            continue;
-                        }
-                        if (!(topicGroupObj instanceof String))
-                        {
-                            logger.error("Topic group should be String: " + topicGroupObj);
-                            continue;
-                        }
-                        String topicGroup = (String)topicGroupObj;
-                        JSONArray topicList = topicInfo.getJSONArray(topicGroup);
-                        Set<String> topicSet = topicGroupToTopicMap.get(topicGroup);
-                        if (topicSet == null)
-                        {
-                            topicSet = new HashSet<String>();
-                            topicGroupToTopicMap.put(topicGroup, topicSet);
-                        }
-                        for(int i = 0; i < topicList.length(); i ++)
-                        {
-                            String topic = topicList.getString(i);
-                            topicSet.add(topic);
-                        }
-                    }
-                }
+                return new ZNodeDependenceDataWithKafkaTopic(obj);
+            }
+            else
+            {
+                logger.error("Does not support other type of dependence data");
+                return null;
             }
         }
-        return topicGroupToTopicMap;
+    }
+    
+    public static Map<String, Map<String, Set<Integer>>> getTopicGroupToTopicNameToPartitionKeyMap(ZNodeDependenceData depData)
+    {
+        if (depData == null || !(depData instanceof ZNodeDependenceDataWithKafkaTopic))
+        {
+            logger.error("depData should not be null or the type ZNodeDependenceDataWithKafkaTopic");
+            return null;
+        }
+        ZNodeDependenceDataWithKafkaTopic zNodeDependenceDataWithKafkaTopic = (ZNodeDependenceDataWithKafkaTopic) depData;
+        return zNodeDependenceDataWithKafkaTopic.getKafkaTopicMappingData().getTopicGroupNameToTopicNameToPartitionKeyMap();
+    }
+    
+    public Map<String, Map<String, Set<Integer>>> getTopicPartitionKeyMap(ZNodeDependenceDataWithKafkaTopic zNodeDependenceDataWithKafkaTopic)
+    {
+        if (zNodeDependenceDataWithKafkaTopic == null)
+        {
+            return null;
+        }
+        return zNodeDependenceDataWithKafkaTopic.getKafkaTopicMappingData().getTopicGroupNameToTopicNameToPartitionKeyMap();
     }
 }

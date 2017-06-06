@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import yanbinwa.common.zNodedata.ZNodeDependenceData;
 import yanbinwa.common.zNodedata.ZNodeServiceData;
+import yanbinwa.common.zNodedata.ZNodeServiceDataImpl;
 
 public class OrchestrationClientImplTest
 {
@@ -55,7 +56,7 @@ public class OrchestrationClientImplTest
 //        client2.stop();
 //        client3.stop();
         
-        ZNodeServiceData data3 = new ZNodeServiceData("localhost", "collection", "ServiceC", 8080, "/rootUrl");
+        ZNodeServiceData data3 = new ZNodeServiceDataImpl("localhost", "collection", "ServiceC", 8080, "/rootUrl");
         OrchestrationClient client3 = new OrchestrationClientImpl(data3, zookeeperHostPort, zNodeProperties);
         client3.start();
         try

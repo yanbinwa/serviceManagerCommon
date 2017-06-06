@@ -4,78 +4,58 @@ import org.json.JSONObject;
 
 import yanbinwa.common.constants.CommonConstants;
 
-public final class ZNodeServiceDataWithKafkaTopic implements ZNodeData
+public class ZNodeServiceDataImpl implements ZNodeServiceData
 {
-    
     String ip;
     String serviceName;
     String serviceGroupName;
     int port;
     String rootUrl;
-    String consumerTopicInfo;
     
-    public ZNodeServiceDataWithKafkaTopic(String ip, String serviceGroupName, String serviceName, int port, String rootUrl, String consumerTopicInfo)
+    public ZNodeServiceDataImpl(String ip, String serviceGroupName, String serviceName, int port, String rootUrl)
     {
         this.ip = ip;
-        this.serviceGroupName = serviceGroupName;
         this.serviceName = serviceName;
+        this.serviceGroupName = serviceGroupName;
         this.port = port;
         this.rootUrl = rootUrl;
-        this.consumerTopicInfo = consumerTopicInfo;
     }
     
-    public ZNodeServiceDataWithKafkaTopic(JSONObject obj)
+    public ZNodeServiceDataImpl(JSONObject obj)
     {
         loadFromJsonObject(obj);
     }
-
-    @Override
-    public int hashCode()
+    
+    public ZNodeServiceDataImpl()
     {
-        return this.createJsonObject().toString().hashCode();
+        
     }
     
-    @Override
-    public String toString()
-    {
-        return this.createJsonObject().toString();
-    }
-
-    @Override
     public String getIp()
     {
-        return this.ip;
+        return ip;
     }
-
-    @Override
+    
     public String getServiceName()
     {
-        return this.serviceName;
+        return serviceName;
     }
-
-    @Override
+    
     public String getServiceGroupName()
     {
-        return this.serviceGroupName;
+        return serviceGroupName;
     }
-
-    @Override
+    
     public int getPort()
     {
-        return this.port;
+        return port;
     }
-
-    @Override
+    
     public String getRootUrl()
     {
-        return this.rootUrl;
+        return rootUrl;
     }
-    
-    public String getConsumerTopicInfo()
-    {
-        return this.consumerTopicInfo;
-    }
-    
+
     @Override
     public JSONObject createJsonObject()
     {
@@ -85,7 +65,6 @@ public final class ZNodeServiceDataWithKafkaTopic implements ZNodeData
         obj.put(CommonConstants.DATA_SERVICEGROUPNAME_KEY, this.serviceGroupName);
         obj.put(CommonConstants.DATA_PORT_KEY, this.port);
         obj.put(CommonConstants.DATA_ROOTURL_KEY, this.rootUrl);
-        obj.put(CommonConstants.DATA_CONSUMER_TOPIC_INFO_KEY, this.consumerTopicInfo);
         return obj;
     }
 
@@ -97,7 +76,6 @@ public final class ZNodeServiceDataWithKafkaTopic implements ZNodeData
         this.serviceGroupName = obj.getString(CommonConstants.DATA_SERVICEGROUPNAME_KEY);
         this.port = obj.getInt(CommonConstants.DATA_PORT_KEY);
         this.rootUrl = obj.getString(CommonConstants.DATA_ROOTURL_KEY);
-        this.consumerTopicInfo = obj.getString(CommonConstants.DATA_CONSUMER_TOPIC_INFO_KEY);
     }
     
     @Override
@@ -107,11 +85,11 @@ public final class ZNodeServiceDataWithKafkaTopic implements ZNodeData
         {
             return false;
         }
-        if (!(obj instanceof ZNodeServiceDataWithKafkaTopic))
+        if (!(obj instanceof ZNodeServiceDataImpl))
         {
             return false;
         }
-        ZNodeServiceDataWithKafkaTopic other = (ZNodeServiceDataWithKafkaTopic)obj;
+        ZNodeServiceDataImpl other = (ZNodeServiceDataImpl)obj;
         if(this.createJsonObject().toString().equals(other.createJsonObject().toString()))
         {
             return true;
@@ -122,4 +100,15 @@ public final class ZNodeServiceDataWithKafkaTopic implements ZNodeData
         }
     }
     
+    @Override
+    public int hashCode()
+    {
+        return this.createJsonObject().toString().hashCode();
+    }
+    
+    @Override
+    public String toString()
+    {
+        return this.createJsonObject().toString();
+    }
 }

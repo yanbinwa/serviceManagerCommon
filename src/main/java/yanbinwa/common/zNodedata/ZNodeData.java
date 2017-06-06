@@ -6,16 +6,5 @@ public interface ZNodeData
 {
     JSONObject createJsonObject();
     
-    void loadFromJsonObject(JSONObject obj);
-        
-    String getIp();
-    
-    String getServiceName();
-    
-    String getServiceGroupName();
-    
-    int getPort();
-    
-    String getRootUrl();
-        
+    void loadFromJsonObject(JSONObject obj);  
 }

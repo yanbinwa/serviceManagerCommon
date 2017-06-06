@@ -10,7 +10,14 @@ public class CommonConstants
     public static final String DATA_PORT_KEY = "port";
     public static final String DATA_ROOTURL_KEY = "rootUrl";
     
-    public static final String DATA_CONSUMER_TOPIC_INFO_KEY = "consumerTopicInfo";
+    public static final String DATA_TOPIC_INFO_KEY = "topicInfo";
+    
+    public static final String DATA_DEPENDENCE_DATA_KEY = "dependenceData";
+    public static final String DATA_KAFKA_TOPIC_DATA_KEY = "kafkaTopicData";
+    
+    public static final String KAFKA_CONSUMERS_KEY = "consumers";
+    public static final String KAFKA_PRODUCERS_KEY = "producers";
+    public static final int KAFKA_DEFAULT_PARTITION_NUM = 10;
 
     public static final int SERVICE_ACTIVE = 0;
     public static final int SERVICE_STANDBY = 1;
@@ -19,4 +26,5 @@ public class CommonConstants
     
     public static final int HTTP_CONNECTION_TIMEOUT = 60000;
     public static final int HTTP_READ_TIMEOUT = 60000;
+    
 }

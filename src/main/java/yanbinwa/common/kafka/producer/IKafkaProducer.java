@@ -1,5 +1,6 @@
 package yanbinwa.common.kafka.producer;
 
+import java.util.Map;
 import java.util.Set;
 
 import yanbinwa.common.iInterface.ServiceLifeCycle;
@@ -31,7 +32,7 @@ public interface IKafkaProducer extends ServiceLifeCycle
     
     boolean sendMessage(KafkaMessage msg);
     
-    void updateTopic(Set<String> topic);
+    void updateTopicToPartitionSetMap(Map<String, Set<Integer>> topicToPartitionSetMap);
     
     String printTopicMapping();
 }

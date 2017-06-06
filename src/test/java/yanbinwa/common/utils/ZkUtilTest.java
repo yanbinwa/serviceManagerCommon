@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import yanbinwa.common.utils.ZkUtil;
 import yanbinwa.common.zNodedata.ZNodeServiceData;
+import yanbinwa.common.zNodedata.ZNodeServiceDataImpl;
 
 public class ZkUtilTest
 {
@@ -147,7 +148,7 @@ public class ZkUtilTest
     @Test
     public void zNodeServiceDataTest()
     {
-        ZNodeServiceData zNodeData = new ZNodeServiceData("1", "1", "1", 1, "1");
+        ZNodeServiceData zNodeData = new ZNodeServiceDataImpl("1", "1", "1", 1, "1");
         System.out.println(zNodeData.getPort());
     }
 

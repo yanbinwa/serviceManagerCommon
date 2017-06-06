@@ -17,14 +17,14 @@ import org.json.JSONObject;
 
 import yanbinwa.common.constants.CommonConstants;
 
-public class ZNodeDependenceData
+public class ZNodeDependenceData implements ZNodeData
 {
 
     private static final Logger logger = Logger.getLogger(ZNodeDependenceData.class);
     
-    Map<String, Set<ZNodeData>> dependenceData = new HashMap<String, Set<ZNodeData>>();
+    Map<String, Set<ZNodeServiceData>> dependenceData = new HashMap<String, Set<ZNodeServiceData>>();
     
-    public ZNodeDependenceData(Map<String, Set<ZNodeData>> dependenceData)
+    public ZNodeDependenceData(Map<String, Set<ZNodeServiceData>> dependenceData)
     {
         this.dependenceData = dependenceData;
     }
@@ -34,7 +34,12 @@ public class ZNodeDependenceData
         loadFromJsonObject(obj);
     }
     
-    public Map<String, Set<ZNodeData>> getDependenceData()
+    public ZNodeDependenceData()
+    {
+        
+    }
+    
+    public Map<String, Set<ZNodeServiceData>> getDependenceData()
     {
         return dependenceData;
     }
@@ -47,15 +52,15 @@ public class ZNodeDependenceData
         }
         
         JSONObject retObj = new JSONObject();
-        for(Map.Entry<String, Set<ZNodeData>> entry : dependenceData.entrySet())
+        for(Map.Entry<String, Set<ZNodeServiceData>> entry : dependenceData.entrySet())
         {
-            Set<ZNodeData> zNodeServiceList = entry.getValue();
+            Set<ZNodeServiceData> zNodeServiceList = entry.getValue();
             if (zNodeServiceList == null)
             {
                 continue;
             }
             JSONArray objArr = new JSONArray();
-            for(ZNodeData zNodeService : zNodeServiceList)
+            for(ZNodeServiceData zNodeService : zNodeServiceList)
             {
                 if (zNodeService == null)
                 {
@@ -77,7 +82,7 @@ public class ZNodeDependenceData
         }
         if (dependenceData == null)
         {
-            dependenceData = new HashMap<String, Set<ZNodeData>>();
+            dependenceData = new HashMap<String, Set<ZNodeServiceData>>();
         }
         for(Object keyObj : obj.keySet())
         {
@@ -96,10 +101,10 @@ public class ZNodeDependenceData
             {
                 continue;
             }
-            Set<ZNodeData> zNodeServiceList = dependenceData.get(key);
+            Set<ZNodeServiceData> zNodeServiceList = dependenceData.get(key);
             if(zNodeServiceList == null)
             {
-                zNodeServiceList = new HashSet<ZNodeData>();
+                zNodeServiceList = new HashSet<ZNodeServiceData>();
                 dependenceData.put(key, zNodeServiceList);
             }
             for(int i = 0; i < valueObj.length(); i ++)
@@ -109,14 +114,14 @@ public class ZNodeDependenceData
                 {
                     continue;
                 }
-                ZNodeData zNodeData = null;
-                if (zNodeServiceObj.has(CommonConstants.DATA_CONSUMER_TOPIC_INFO_KEY))
+                ZNodeServiceData zNodeData = null;
+                if (zNodeServiceObj.has(CommonConstants.DATA_TOPIC_INFO_KEY))
                 {
-                    zNodeData = new ZNodeServiceDataWithKafkaTopic(zNodeServiceObj);
+                    zNodeData = new ZNodeServiceDataWithKafkaTopicImpl(zNodeServiceObj);
                 }
                 else
                 {
-                    zNodeData = new ZNodeServiceData(zNodeServiceObj);
+                    zNodeData = new ZNodeServiceDataImpl(zNodeServiceObj);
                 }
                 zNodeServiceList.add(zNodeData);
             }

@@ -12,13 +12,14 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import yanbinwa.common.utils.ZkUtil;
-import yanbinwa.common.zNodedata.ZNodeData;
+import yanbinwa.common.zNodedata.ZNodeDataUtil;
 import yanbinwa.common.zNodedata.ZNodeDependenceData;
+import yanbinwa.common.zNodedata.ZNodeServiceData;
 
 public class OrchestrationClientImpl implements OrchestrationClient
 {
     /** 服务信息 */
-    ZNodeData zNodeData;
+    ZNodeServiceData zNodeServiceData;
     
     /** 服务状太发送改变后的回调类 */
     OrchestartionCallBack callback;
@@ -63,15 +64,15 @@ public class OrchestrationClientImpl implements OrchestrationClient
     
     private static final Logger logger = Logger.getLogger(OrchestrationClientImpl.class);
     
-    public OrchestrationClientImpl(ZNodeData data, String zookeeperHostPort, Map<String, String> zNodeInfoMap)
+    public OrchestrationClientImpl(ZNodeServiceData data, String zookeeperHostPort, Map<String, String> zNodeInfoMap)
     {
         this(data, null, zookeeperHostPort, zNodeInfoMap);
     }
     
-    public OrchestrationClientImpl(ZNodeData data, OrchestartionCallBack callback, 
+    public OrchestrationClientImpl(ZNodeServiceData data, OrchestartionCallBack callback, 
                                String zookeeperHostPort, Map<String, String> zNodeInfoMap)
     {
-        this.zNodeData = data;
+        this.zNodeServiceData = data;
         this.callback = callback;
         this.zookeeperHostPort = zookeeperHostPort;
         if(zNodeInfoMap == null)
@@ -181,32 +182,18 @@ public class OrchestrationClientImpl implements OrchestrationClient
     
     private String getRegZnodeChildPath()
     {
-        return regZnodePath + "/" + zNodeData.getServiceName();
+        return regZnodePath + "/" + zNodeServiceData.getServiceName();
     }
     
     private String getDepZnodeChildPath()
     {
-        return depZnodePath + "/" + zNodeData.getServiceGroupName();
+        return depZnodePath + "/" + zNodeServiceData.getServiceGroupName();
     }
     
     private void setUpZnodeForOnline() throws KeeperException, InterruptedException
     {
-        regRealZnodeChildPath = ZkUtil.createEphemeralZNode(zk, getRegZnodeChildPath(), zNodeData.createJsonObject(), false);
+        regRealZnodeChildPath = ZkUtil.createEphemeralZNode(zk, getRegZnodeChildPath(), zNodeServiceData.createJsonObject(), false);
     }
-    
-//    private void delZnodeForOnline() throws InterruptedException, KeeperException
-//    {
-//        if(regRealZnodeChildPath == null)
-//        {
-//            logger.error("Have not setup the child znode for register" + getRegZnodeChildPath());
-//        }
-//        else
-//        {
-//            logger.info("delZnodeForOnline: " + regRealZnodeChildPath);
-//            ZkUtil.deleteZnode(zk, regRealZnodeChildPath);
-//            regRealZnodeChildPath = null;
-//        }
-//    }
     
     private void waitingForZookeeper()
     {
@@ -497,7 +484,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
     private void handleDepZnodeChildCreateEvent() throws KeeperException, InterruptedException
     {
         this.isReady = true;
-        this.depData = new ZNodeDependenceData(ZkUtil.getData(zk, getDepZnodeChildPath()));
+        this.depData = ZNodeDataUtil.getZNodeDependenceData(ZkUtil.getData(zk, getDepZnodeChildPath()));
         if(callback != null)
         {
             this.callback.handleServiceStateChange(OrchestrationServiceState.READY); 
@@ -528,7 +515,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
             this.isReady = true;
             isSend = true;
         }
-        ZNodeDependenceData data = new ZNodeDependenceData(ZkUtil.getData(zk, getDepZnodeChildPath()));
+        ZNodeDependenceData data = ZNodeDataUtil.getZNodeDependenceData(ZkUtil.getData(zk, getDepZnodeChildPath()));
         if(isSend || !data.equals(this.depData))
         {
             this.depData = data;
