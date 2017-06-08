@@ -128,7 +128,10 @@ public class IKafkaConsumerWorker
                     msg.setPartitionCode((Integer)key);
                 }
                 logger.trace("Get msg from kafka: " + msg.toString());
-                callback.handleOnData(msg);
+                if (callback != null)
+                {
+                    callback.handleOnData(msg);
+                }
             }
         }
         //这里要在consumer创建的线程中关闭，因为consumer不是线程安全的
