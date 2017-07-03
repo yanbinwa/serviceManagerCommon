@@ -146,6 +146,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
             isReady = false;
             zNodeState = OrchestrationZnodeState.OFFLINE;
             depData = null;
+            handleSelfClosedEvent();
         }
         else
         {
@@ -523,6 +524,14 @@ public class OrchestrationClientImpl implements OrchestrationClient
             {
                 this.callback.handleServiceStateChange(OrchestrationServiceState.DEPCHANGE); 
             }
+        }
+    }
+    
+    private void handleSelfClosedEvent()
+    {
+        if(callback != null)
+        {
+            this.callback.handleServiceStateChange(OrchestrationServiceState.NOTREADY); 
         }
     }
     

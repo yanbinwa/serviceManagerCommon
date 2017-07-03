@@ -41,7 +41,7 @@ public class IKafkaConsumerWorker
         props.put("key.deserializer", IKafkaConsumer.DEFAULT_KAFKA_KEY_DESERIALIZER_CLASS);
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
-        props.put("session.timeout.ms", "30000");
+        props.put("session.timeout.ms", "10000");
         
         String brokerList = (String)kafkaConsumerProperties.get(IKafkaConsumer.BROKER_LIST_KEY);
         if(null == brokerList)
@@ -83,6 +83,7 @@ public class IKafkaConsumerWorker
     {
         if (!isRunning)
         {
+            logger.info("Kafka consumer start ...");
             isRunning = true;
             buildKafkaConsumer();
             kafkaPollThread = new Thread(new Runnable() {
@@ -104,15 +105,18 @@ public class IKafkaConsumerWorker
     
     private void pollKafkaMessage()
     {
+        logger.info("start poll kafka message");
         List<String> topicList = new ArrayList<String>();
         topicList.add(this.listenTopic);
         consumer.subscribe(topicList);
+        logger.info("subscribe topiclist: " + topicList);
         
         while(isRunning)
         {
             ConsumerRecords<Object, Object> records = consumer.poll(IKafkaConsumer.KAFKA_POLL_TIMEOUT);
             if (records == null || records.isEmpty())
             {
+                logger.info("the records is empty");
                 continue;
             }
             Iterator<ConsumerRecord<Object, Object>> iterator = records.iterator();
