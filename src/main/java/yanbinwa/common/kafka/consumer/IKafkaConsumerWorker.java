@@ -116,7 +116,6 @@ public class IKafkaConsumerWorker
             ConsumerRecords<Object, Object> records = consumer.poll(IKafkaConsumer.KAFKA_POLL_TIMEOUT);
             if (records == null || records.isEmpty())
             {
-                logger.info("the records is empty");
                 continue;
             }
             Iterator<ConsumerRecord<Object, Object>> iterator = records.iterator();

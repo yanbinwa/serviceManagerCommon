@@ -14,5 +14,5 @@ public interface IKafkaConsumer extends ServiceLifeCycle
     public static final String DEFAULT_KAFKA_KEY_DESERIALIZER_CLASS = "org.apache.kafka.common.serialization.IntegerDeserializer";
     public static final String DEFAULT_KAFKA_PRODUCER_TYPE = "sync";
     
-    public static final int KAFKA_POLL_TIMEOUT = 100;
+    public static final int KAFKA_POLL_TIMEOUT = 1000;
 }
