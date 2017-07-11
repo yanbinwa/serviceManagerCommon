@@ -1,28 +1,37 @@
-package yanbinwa.common.zNodedata;
+package yanbinwa.common.zNodedata.decorate;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class KafkaTopicMappingData implements ZNodeData
+public class ZNodeDependenceDataDecorateKafka implements ZNodeDependenceDataDecorate
 {
+    private static final Logger logger = Logger.getLogger(ZNodeDependenceDataDecorateKafka.class);
+    
     private Map<String, Map<String, Set<Integer>>> topicGroupNameToTopicNameToPartitionKeyMap = new HashMap<String, Map<String, Set<Integer>>>();
-
-    public KafkaTopicMappingData(JSONObject obj)
+    
+    @SuppressWarnings("unchecked")
+    public ZNodeDependenceDataDecorateKafka(Object obj)
     {
-        loadFromJsonObject(obj);
+        if (!(obj instanceof Map))
+        {
+            logger.error("ZNodeDependenceDataDecorateKafka input should be Map");
+            return;
+        }
+        this.topicGroupNameToTopicNameToPartitionKeyMap = (Map<String, Map<String, Set<Integer>>>)obj;
     }
     
-    public KafkaTopicMappingData(Map<String, Map<String, Set<Integer>>> topicGroupNameToTopicNameToPartitionKeyMap)
+    public ZNodeDependenceDataDecorateKafka(JSONObject jsonObj)
     {
-        this.topicGroupNameToTopicNameToPartitionKeyMap = topicGroupNameToTopicNameToPartitionKeyMap;
+        loadFromJsonObject(jsonObj);
     }
     
-    public KafkaTopicMappingData()
+    public ZNodeDependenceDataDecorateKafka()
     {
         
     }
@@ -119,11 +128,11 @@ public class KafkaTopicMappingData implements ZNodeData
         {
             return false;
         }
-        if (! (obj instanceof KafkaTopicMappingData))
+        if (! (obj instanceof ZNodeDependenceDataDecorateKafka))
         {
             return false;
         }
-        KafkaTopicMappingData other = (KafkaTopicMappingData) obj;
+        ZNodeDependenceDataDecorateKafka other = (ZNodeDependenceDataDecorateKafka) obj;
         if(this.createJsonObject().toString().equals(other.createJsonObject().toString()))
         {
             return true;

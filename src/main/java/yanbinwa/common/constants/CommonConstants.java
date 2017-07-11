@@ -10,7 +10,9 @@ public class CommonConstants
     public static final String DATA_PORT_KEY = "port";
     public static final String DATA_ROOTURL_KEY = "rootUrl";
     
+    public static final String DATA_DECORATE_KEY = "decorate";
     public static final String DATA_TOPIC_INFO_KEY = "topicInfo";
+    public static final String DATA_REDIS_INFO_NEED_KEY = "redisInfoNeed";
     
     public static final String DATA_DEPENDENCE_DATA_KEY = "dependenceData";
     public static final String DATA_KAFKA_TOPIC_DATA_KEY = "kafkaTopicData";

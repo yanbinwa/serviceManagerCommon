@@ -6,7 +6,9 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import yanbinwa.common.constants.CommonConstants;
+import yanbinwa.common.zNodedata.decorate.ZNodeDecorateType;
+import yanbinwa.common.zNodedata.decorate.ZNodeDependenceDataDecorateKafka;
+import yanbinwa.common.zNodedata.decorate.ZNodeDependenceDataDecorateRedis;
 
 public class ZNodeDataUtil
 {
@@ -18,14 +20,7 @@ public class ZNodeDataUtil
         {
             return null;
         }
-        if(obj.has(CommonConstants.DATA_TOPIC_INFO_KEY))
-        {
-            return new ZNodeServiceDataWithKafkaTopicImpl(obj);
-        }
-        else
-        {
-            return new ZNodeServiceDataImpl(obj);
-        }
+        return new ZNodeServiceDataImpl(obj);
     }
     
     public static ZNodeDependenceData getZNodeDependenceData(JSONObject obj)
@@ -34,41 +29,28 @@ public class ZNodeDataUtil
         {
             return null;
         }
-        if(!obj.has(CommonConstants.DATA_DEPENDENCE_DATA_KEY))
-        {
-            return new ZNodeDependenceData(obj);
-        }
-        else
-        {
-            if (obj.has(CommonConstants.DATA_KAFKA_TOPIC_DATA_KEY))
-            {
-                return new ZNodeDependenceDataWithKafkaTopic(obj);
-            }
-            else
-            {
-                logger.error("Does not support other type of dependence data");
-                return null;
-            }
-        }
+        return new ZNodeDependenceDataImpl(obj);
     }
     
     public static Map<String, Map<String, Set<Integer>>> getTopicGroupToTopicNameToPartitionKeyMap(ZNodeDependenceData depData)
     {
-        if (depData == null || !(depData instanceof ZNodeDependenceDataWithKafkaTopic))
+        if (depData == null || !(depData.isContainedDecorate(ZNodeDecorateType.KAFKA)))
         {
-            logger.error("depData should not be null or the type ZNodeDependenceDataWithKafkaTopic");
+            logger.error("depData should not be null or the type ZNodeDecorateType.KAFKA");
             return null;
         }
-        ZNodeDependenceDataWithKafkaTopic zNodeDependenceDataWithKafkaTopic = (ZNodeDependenceDataWithKafkaTopic) depData;
-        return zNodeDependenceDataWithKafkaTopic.getKafkaTopicMappingData().getTopicGroupNameToTopicNameToPartitionKeyMap();
+        ZNodeDependenceDataDecorateKafka zNodeDependenceDataDecorateKafka = (ZNodeDependenceDataDecorateKafka)depData.getDependenceDataDecorate(ZNodeDecorateType.KAFKA);
+        return zNodeDependenceDataDecorateKafka.getTopicGroupNameToTopicNameToPartitionKeyMap();
     }
     
-    public Map<String, Map<String, Set<Integer>>> getTopicPartitionKeyMap(ZNodeDependenceDataWithKafkaTopic zNodeDependenceDataWithKafkaTopic)
+    public static Map<String, Set<Integer>> getRedisServiceNameToPartitionMap(ZNodeDependenceData depData)
     {
-        if (zNodeDependenceDataWithKafkaTopic == null)
+        if (depData == null || !(depData.isContainedDecorate(ZNodeDecorateType.REDIS)))
         {
+            logger.error("depData should not be null or the type ZNodeDecorateType.REDIS " + depData);
             return null;
         }
-        return zNodeDependenceDataWithKafkaTopic.getKafkaTopicMappingData().getTopicGroupNameToTopicNameToPartitionKeyMap();
+        ZNodeDependenceDataDecorateRedis zNodeDependenceDataDecorateRedis = (ZNodeDependenceDataDecorateRedis)depData.getDependenceDataDecorate(ZNodeDecorateType.REDIS);
+        return zNodeDependenceDataDecorateRedis.getRedisServiceNameToPartitionMap();
     }
 }
