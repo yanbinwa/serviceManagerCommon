@@ -1,12 +1,21 @@
 package yanbinwa.common.redis;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import yanbinwa.common.constants.CommonConstants;
 
 /**
  * 
@@ -18,16 +27,13 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisClient
 {
-    private JedisPool jedisPool;
+    private static final Logger logger = Logger.getLogger(RedisClient.class);
     
-    public Jedis getJedisConnection()
-    {
-        if (jedisPool != null)
-        {
-            return jedisPool.getResource();
-        }
-        return null;
-    }
+    private JedisPool jedisPool;
+    private ThreadLocal<Jedis> jedis = new ThreadLocal<Jedis>();
+    private BlockingQueue<Jedis> remainConnectionQueue = null;
+    private Set<Jedis> runningJedisSet = new HashSet<Jedis>();
+    private int connectionMaxNum = -1;
     
     public RedisClient(String ip, int port, int maxTotal, int maxIdle, long maxWait, boolean testOnBorrow)
     {
@@ -36,17 +42,105 @@ public class RedisClient
         config.setMaxIdle(maxIdle); 
         config.setMaxWaitMillis(maxWait); 
         config.setTestOnBorrow(testOnBorrow); 
-        
         jedisPool = new JedisPool(config, ip, port);
+        
+        connectionMaxNum = maxTotal;
+        remainConnectionQueue = new ArrayBlockingQueue<Jedis>(connectionMaxNum);
+        for (int i = 0; i < connectionMaxNum; i ++)
+        {
+            Jedis jedis = jedisPool.getResource();
+            if (jedis == null)
+            {
+                logger.error("Jedis connection should not be null");
+                continue;
+            }
+            remainConnectionQueue.add(jedis);
+        }
     }
     
-    public void returnJedisConnection(Jedis redis)
+    /**
+     * 从queue中获取一个redis，可以是阻塞的，必须调用的，如何保证线程安全？？？
+     * @throws InterruptedException 
+     * 
+     */
+    public boolean getJedisConnection() throws InterruptedException
     {
-        redis.close();
+        if (jedis.get() != null)
+        {
+            logger.info("Has already get the redis connection");
+            return true;
+        }
+        Jedis connection = remainConnectionQueue.poll(CommonConstants.REDIS_GET_CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
+        if (connection == null)
+        {
+            logger.error("getJedisConnection should not be null");
+            return false;
+        }
+        jedis.set(connection);
+        runningJedisSet.add(connection);
+        logger.trace("Get connection from queue");
+        return true;
     }
     
+    public boolean returnJedisConnection()
+    {
+        if (jedis.get() == null)
+        {
+            logger.error("Threadlocal jedis should not be null");
+            return false;
+        }
+        Jedis connection = jedis.get();
+        runningJedisSet.remove(connection);
+        boolean ret = remainConnectionQueue.offer(connection);
+        if (!ret)
+        {
+            logger.error("input connection failed");
+            return false;
+        }
+        jedis.set(null);
+        return true;
+    }
+    
+    /**
+     * 
+     * 这里要关闭打开的connection，之后再做jedisPool close
+     * 
+     */
     public void closePool()
     {
+        List<Jedis> jedisConnection = new ArrayList<Jedis>();
+        int retry = 0; 
+        while (runningJedisSet.size() != 0 && retry < CommonConstants.REDIS_CLOSE_RETRY_TIMES)
+        {
+            logger.info("There are still thread using the jedis connection");
+            try
+            {
+                Thread.sleep(100);
+            } 
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            retry ++;
+        }
+        if (runningJedisSet.size() > 0)
+        {
+            logger.error("Still have tread hold jedis connection, will force close them");
+            jedisConnection.addAll(runningJedisSet);
+        }
+        jedisConnection.addAll(remainConnectionQueue);
+        for (Jedis jedis : jedisConnection)
+        {
+            try
+            {
+                jedis.close();
+            }
+            catch (JedisConnectionException e1)
+            {
+                logger.error("Can not close the jedis");
+                continue;
+            }
+        }
         if (jedisPool != null)
         {
             jedisPool.close();
@@ -58,69 +152,69 @@ public class RedisClient
      * 
      * @param jedis
      */
-    public void flushDB(Jedis jedis)
+    public void flushDB()
     {
-        jedis.flushDB();
+        jedis.get().flushDB();
     }
     
-    public String setString(Jedis jedis, String key, String value)
+    public String setString(String key, String value)
     {
-        return jedis.set(key, value);
+        return jedis.get().set(key, value);
     }
     
-    public String getString(Jedis jedis, String key)
+    public String getString(String key)
     {
-        return jedis.get(key);
+        return jedis.get().get(key);
     }
     
-    public void delString(Jedis jedis, String key)
+    public void delString(String key)
     {
-        jedis.del(key);
+        jedis.get().del(key);
     }
     
-    public void setList(Jedis jedis, String key, List<String> values)
+    public void setList(String key, List<String> values)
     {
-        jedis.lpush(key, (String[])values.toArray());
+        jedis.get().lpush(key, (String[])values.toArray());
     }
     
-    public List<String> getList(Jedis jedis, String key)
+    public List<String> getList(String key)
     {
-        return jedis.lrange(key, 0, -1);
+        return jedis.get().lrange(key, 0, -1);
     }
     
-    public void delList(Jedis jedis, String key)
+    public void delList(String key)
     {
-        jedis.ltrim(key, 0, -1);
+        jedis.get().ltrim(key, 0, -1);
     }
     
-    public void setSortedSet(Jedis jedis, String key, Double score, String value)
+    public void setSortedSet(String key, Double score, String value)
     {
-        jedis.zadd(key, score, value);
+        jedis.get().zadd(key, score, value);
     }
     
-    public void setSortedSet(Jedis jedis, String key, Map<String, Double>scoreMembers)
+    public void setSortedSet(String key, Map<String, Double>scoreMembers)
     {
-        jedis.zadd(key, scoreMembers);
+        jedis.get().zadd(key, scoreMembers);
     }
     
-    public Set<String> getSortedSet(Jedis jedis, String key) 
+    public Set<String> getSortedSet(String key) 
     {
-        return jedis.zrange(key, 0, -1);
+        return jedis.get().zrange(key, 0, -1);
     }
     
-    public Set<String> getSortedSet(Jedis jedis, String key, Double min, Double max)
+    public Set<String> getSortedSet(String key, Double min, Double max)
     {
-        return jedis.zrangeByScore(key, min, max);
+        return jedis.get().zrangeByScore(key, min, max);
     }
     
-    public void delSortedSet(Jedis jedis, String key)
+    public void delSortedSet(String key)
     {
-        jedis.zrem(key);
+        jedis.get().zrem(key);
     }
     
-    public void delSortedSet(Jedis jedis, String key, Double start, Double end)
+    public void delSortedSet(String key, Double start, Double end)
     {
-        jedis.zremrangeByScore(key, start, end);
+        jedis.get().zremrangeByScore(key, start, end);
     }
     
     /**
@@ -131,8 +225,8 @@ public class RedisClient
      * @param value
      * @param seconds
      */
-    public void setStringWithExpireTime(Jedis jedis, String key, String value, int seconds)
+    public void setStringWithExpireTime(String key, String value, int seconds)
     {
-        jedis.setex(key, seconds, value);
+        jedis.get().setex(key, seconds, value);
     }
 }

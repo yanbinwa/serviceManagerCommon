@@ -29,4 +29,8 @@ public class CommonConstants
     public static final int HTTP_CONNECTION_TIMEOUT = 60000;
     public static final int HTTP_READ_TIMEOUT = 60000;
     
+    public static final int REDIS_GET_CONNECTION_TIMEOUT = 1000;
+    public static final int REDIS_CLOSE_RETRY_TIMES = 3;
+    public static final int REDIS_CLOSE_RETRY_INTERVAL = 100;
+    
 }
