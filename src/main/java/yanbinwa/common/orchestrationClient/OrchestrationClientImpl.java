@@ -193,6 +193,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
     
     private void setUpZnodeForOnline() throws KeeperException, InterruptedException
     {
+        logger.info("setUpZnodeForOnline for: " + zNodeServiceData);
         regRealZnodeChildPath = ZkUtil.createEphemeralZNode(zk, getRegZnodeChildPath(), zNodeServiceData.createJsonObject(), false);
     }
     
@@ -250,6 +251,7 @@ public class OrchestrationClientImpl implements OrchestrationClient
         {
             if(ZkUtil.checkZnodeExist(zk, regZnodePath) && ZkUtil.checkZnodeExist(zk, depZnodePath))
             {
+                // 为什么是等于null，因为这个的regRealZnodeChildPath是创建子Node时返回的，如果没有创建该Node，就为null
                 if(regRealZnodeChildPath == null || !ZkUtil.checkZnodeExist(zk, regRealZnodeChildPath))
                 {
                     setUpZnodeForOnline();

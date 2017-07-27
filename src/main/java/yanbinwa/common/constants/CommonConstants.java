@@ -33,4 +33,27 @@ public class CommonConstants
     public static final int REDIS_CLOSE_RETRY_TIMES = 3;
     public static final int REDIS_CLOSE_RETRY_INTERVAL = 100;
     
+    public static final String SERVICE_IP = "ip";
+    public static final String SERVICE_SERVICEGROUPNAME = "serviceGroupName";
+    public static final String SERVICE_SERVICENAME = "serviceName";
+    public static final String SERVICE_PORT = "port";
+    public static final String SERVICE_ROOTURL = "rootUrl";
+    public static final String SERVICE_TOPICINFO = "topicInfo";
+    
+    public static final String CONFZNODEPATH_KEY = "confZnodePath";
+    public static final String CONFDEPLOYCHILDZNODEPATH_KEY = "deployChildZnodePath";
+    public static final String REGZNODEPATH_KEY = "regZnodePath";
+    public static final String REGZNODECHILDPATH_KEY = "regZnodeChildPath";
+    public static final String DEPZNODEPATH_KEY = "depZnodePath";
+    
+    public static final String ZOOKEEPER_HOSTPORT_KEY = "zookeeperHostport";
+    public static final String DEVICES_KEY = "devices";
+    public static final String SERVICE_DATA_PROPERTIES_KEY = "serviceDataProperties";
+    public static final String SERVICE_DEPENDENCE_PROPERTIES_KEY = "dependencyProperties";
+    public static final String SERVICE_MONITOR_PROPERTIES_KEY = "monitorProperties";
+    public static final String SERVICE_KAFKA_PROPERTIES_KEY = "kafkaProperties";
+    
+    
+    public static final int ZK_WAIT_INTERVAL = 10 * 1000;
+    
 }

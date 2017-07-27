@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import yanbinwa.common.constants.CommonConstants;
 import yanbinwa.common.zNodedata.decorate.ZNodeDecorateType;
 import yanbinwa.common.zNodedata.decorate.ZNodeDependenceDataDecorateKafka;
 import yanbinwa.common.zNodedata.decorate.ZNodeDependenceDataDecorateRedis;
@@ -21,6 +22,15 @@ public class ZNodeDataUtil
             return null;
         }
         return new ZNodeServiceDataImpl(obj);
+    }
+    
+    public static ZNodeServiceData getZnodeData(Map<String, Object> propMap)
+    {
+        if(propMap == null)
+        {
+            return null;
+        }
+        return new ZNodeServiceDataImpl(new JSONObject(propMap));
     }
     
     public static ZNodeDependenceData getZNodeDependenceData(JSONObject obj)
@@ -52,5 +62,33 @@ public class ZNodeDataUtil
         }
         ZNodeDependenceDataDecorateRedis zNodeDependenceDataDecorateRedis = (ZNodeDependenceDataDecorateRedis)depData.getDependenceDataDecorate(ZNodeDecorateType.REDIS);
         return zNodeDependenceDataDecorateRedis.getRedisServiceNameToPartitionMap();
+    }
+    
+    public static boolean validateServiceConfigProperties(ZNodeServiceData serviceData, JSONObject prop)
+    {
+        if (prop == null || serviceData == null)
+        {
+            logger.error("serviceData or prop should not be null");
+            return false;
+        }
+        //Check serviceDataProperites
+        if (!prop.has(CommonConstants.SERVICE_DATA_PROPERTIES_KEY))
+        {
+            logger.error("prop should contain element serviceDataProperites");
+            return false;
+        }
+        JSONObject serviceDataProperitesObj = prop.getJSONObject(CommonConstants.SERVICE_DATA_PROPERTIES_KEY);
+        if (serviceDataProperitesObj == null)
+        {
+            logger.error("serviceDataProperitesObj should not be null");
+            return false;
+        }
+        ZNodeServiceData serviceDataTmp = ZNodeDataUtil.getZnodeData(serviceDataProperitesObj);
+        if (serviceDataTmp == null && serviceDataTmp != serviceData)
+        {
+            logger.error("serviceDataTmp is null or not equal to serviceData. serviceDataTmp is: " + serviceDataTmp
+                    + "; serviceData is: " + serviceData);
+        }
+        return true;
     }
 }

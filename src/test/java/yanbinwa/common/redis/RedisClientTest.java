@@ -34,7 +34,7 @@ public class RedisClientTest
         {
             System.out.println(ret);
         } 
-        
+        rc.returnJedisConnection();
         rc.closePool();
     }
     
@@ -85,6 +85,7 @@ public class RedisClientTest
         }
         System.out.println("redisConnectionTest stop");
         rc.returnJedisConnection();
+        rc.closePool();
     }
     
     @Test
@@ -95,7 +96,7 @@ public class RedisClientTest
         {
             rc.getJedisConnection();
             rc.setString("wyb", "123");
-            Thread.sleep(20000);
+            Thread.sleep(2000);
             String value = rc.getString("wyb");
             if (!value.equals("123"))
             {

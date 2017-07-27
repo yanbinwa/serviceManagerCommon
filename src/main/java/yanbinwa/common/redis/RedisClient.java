@@ -15,6 +15,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisException;
 import yanbinwa.common.constants.CommonConstants;
 
 /**
@@ -137,7 +138,12 @@ public class RedisClient
             }
             catch (JedisConnectionException e1)
             {
-                logger.error("Can not close the jedis");
+                logger.error("JedisConnectionException. Can not close the jedis");
+                continue;
+            }
+            catch (JedisException e1)
+            {
+                logger.error("JedisException. Can not close the jedis");
                 continue;
             }
         }
