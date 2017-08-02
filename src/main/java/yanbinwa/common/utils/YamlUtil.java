@@ -13,7 +13,7 @@ public class YamlUtil
     private static final Logger logger = Logger.getLogger(YamlUtil.class);
     
     @SuppressWarnings("rawtypes")
-    public static Map getMapFromFile(String fileName)
+    public static Map getMapFromFile(String fileName) throws FileNotFoundException
     {
         File yamlFile = new File(fileName);
         if (!yamlFile.exists())
@@ -22,16 +22,14 @@ public class YamlUtil
             return null;
         }
         Map properties = null;
-        try
-        {
-            properties = (Map) Yaml.loadType(yamlFile, HashMap.class);
-        } 
-        catch (FileNotFoundException e)
-        {
-            logger.error("Fail to load the yaml file: " + fileName);
-            e.printStackTrace();
-            return null;
-        }
+        properties = (Map) Yaml.loadType(yamlFile, HashMap.class);
         return properties;
+    }
+    
+    @SuppressWarnings("rawtypes")
+    public static void setMapToFile(Map map, String fileName) throws FileNotFoundException
+    {
+        File yamlFile = new File(fileName);
+        Yaml.dump(map, yamlFile, false);
     }
 }
