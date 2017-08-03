@@ -160,27 +160,10 @@ public class ConfigClientImpl implements ConfigClient
     
     private void zookeeperEventHandler()
     {
-        if(zk != null)
+        if(!buildZookeeperConnection())
         {
-            try
-            {
-                ZkUtil.closeZk(zk);
-                zk = null;
-            } 
-            catch (InterruptedException e)
-            {
-                logger.error("Fail to close the zookeeper connection at begin");
-            }
-        }
-        zk = ZkUtil.connectToZk(zookeeperHostPort, zkWatcher);
-        if (zk == null)
-        {
-            logger.error("Can not connect to zookeeper: " + zookeeperHostPort);
+            logger.error("Can not connection to zookeeper");
             return;
-        }
-        if(zk.getState() == ZooKeeper.States.CONNECTING)
-        {
-            waitingForZookeeper();
         }
         
         try
@@ -191,14 +174,26 @@ public class ConfigClientImpl implements ConfigClient
             }
             while(isRunning)
             {
-                if(configZNodeState == OrchestrationZnodeState.OFFLINE)
+                try
                 {
-                    handerZookeeperEventOffLine();
+                    if(configZNodeState == OrchestrationZnodeState.OFFLINE)
+                    {
+                        handerZookeeperEventOffLine();
+                    }
+                    else
+                    {
+                        handerZookeeperEventOnLine();
+                    } 
                 }
-                else
+                catch(KeeperException.SessionExpiredException e)
                 {
-                    handerZookeeperEventOnLine();
-                } 
+                    logger.info("zookeeper connection is expire. Need to reconnect");
+                    if(!buildZookeeperConnection())
+                    {
+                        logger.error("Can not connection to zookeeper");
+                        return;
+                    }
+                }
             }
         } 
         catch (KeeperException e)
@@ -236,7 +231,7 @@ public class ConfigClientImpl implements ConfigClient
         logger.info("Connected to the zookeeper " + zookeeperHostPort);
     }
     
-    private void handerZookeeperEventOffLine()
+    private void handerZookeeperEventOffLine() throws KeeperException
     {
         logger.info("start zookeeper event handler for off line ...");
         try
@@ -256,7 +251,6 @@ public class ConfigClientImpl implements ConfigClient
                     logger.info("Connected to zookeeper success!");
                     continue;
                 }
-                //TODO:
                 if(event.getType() == Watcher.Event.EventType.NodeCreated || 
                                 event.getType() == Watcher.Event.EventType.NodeDataChanged)
                 {
@@ -272,8 +266,14 @@ public class ConfigClientImpl implements ConfigClient
         } 
         catch (KeeperException e)
         {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+            if(e instanceof KeeperException.SessionExpiredException)
+            {
+                throw e;
+            }
+            else
+            {
+                logger.error(e.getMessage());
+            }
         } 
         catch (InterruptedException e)
         {
@@ -290,7 +290,7 @@ public class ConfigClientImpl implements ConfigClient
         logger.info("end zookeeper event handler for off line ...");
     }
     
-    private void handerZookeeperEventOnLine()
+    private void handerZookeeperEventOnLine() throws KeeperException
     {
         logger.info("start zookeeper event handler for on line ...");
         try
@@ -351,7 +351,16 @@ public class ConfigClientImpl implements ConfigClient
         }
         catch (KeeperException e)
         {
-            e.printStackTrace();
+            if(e instanceof KeeperException.SessionExpiredException)
+            {
+                serviceConfigProperties = null;
+                configZNodeState = OrchestrationZnodeState.OFFLINE;
+                throw e;
+            }
+            else
+            {
+                logger.error(e.getMessage());
+            }
         } 
         catch (InterruptedException e)
         {
@@ -365,6 +374,32 @@ public class ConfigClientImpl implements ConfigClient
             }
         }
         logger.info("end zookeeper event handler for on line ...");
+    }
+    
+    private boolean buildZookeeperConnection()
+    {
+        if (zk != null)
+        {
+            try
+            {
+                ZkUtil.closeZk(zk);
+            } 
+            catch (InterruptedException e1)
+            {
+                logger.error("Fail to close the zookeeper connection at begin");
+            }
+        }
+        zk = ZkUtil.connectToZk(zookeeperHostPort, zkWatcher);
+        if (zk == null)
+        {
+            logger.error("Can not connect to zookeeper: " + zookeeperHostPort);
+            return false;
+        }
+        if(zk.getState() == ZooKeeper.States.CONNECTING)
+        {
+            waitingForZookeeper();
+        }
+        return true;
     }
     
     private String getConfigZnodeChildPath()
