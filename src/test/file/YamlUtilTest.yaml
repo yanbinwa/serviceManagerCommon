@@ -1,0 +1,5 @@
+--- 
+wyb: "123"
+wjy: !java.util.HashMap
+  zcl: "456"
+  wzy: "789"

@@ -256,7 +256,7 @@ public class ConfigClientImpl implements ConfigClient
                     logger.info("Connected to zookeeper success!");
                     continue;
                 }
-                
+                //TODO:
                 if(event.getType() == Watcher.Event.EventType.NodeCreated || 
                                 event.getType() == Watcher.Event.EventType.NodeDataChanged)
                 {
@@ -266,8 +266,7 @@ public class ConfigClientImpl implements ConfigClient
                         logger.info("Znode is on line " + event.getPath());
                         return;
                     }
-                    String path = event.getPath();
-                    ZkUtil.watchZnodeChildeChange(zk, path, zkWatcher);
+                    ZkUtil.watchZnodeChildeChange(zk, configZnodePath, zkWatcher);
                 }                
             }
         } 
