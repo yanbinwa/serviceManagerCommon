@@ -3,22 +3,18 @@ package yanbinwa.common.kafka.consumer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import yanbinwa.common.kafka.message.KafkaMessage;
 
 public class IKafkaConsumerImplTest
-{
-
-    private static final Logger logger = Logger.getLogger(IKafkaConsumerImplTest.class);
-    
+{    
     class IKafkaCallBackImplTest implements IKafkaCallBack
     {
         @Override
         public void handleOnData(KafkaMessage msg)
         {
-            logger.info("Get the message " + msg);
+            System.out.println("Get the message " + msg);
         }
     }
     
@@ -26,6 +22,7 @@ public class IKafkaConsumerImplTest
     public void test()
     {
         Map<String, String> kafkaProperties = new HashMap<String, String>();
+        kafkaProperties.put(IKafkaConsumer.ZOOKEEPER_HOST_PORT_KEY, "192.168.56.17:2181");
         kafkaProperties.put(IKafkaConsumer.BROKER_LIST_KEY, "192.168.56.17:9092");
         kafkaProperties.put(IKafkaConsumer.MAX_BLOCK_MS_KEY, "1000");
         kafkaProperties.put(IKafkaConsumer.GROUP_ID_KEY, "test");

@@ -53,6 +53,18 @@ public class CommonConstants
     public static final String SERVICE_MONITOR_PROPERTIES_KEY = "monitorProperties";
     public static final String SERVICE_KAFKA_PROPERTIES_KEY = "kafkaProperties";
     
+    public static final String ZOOKEEPER_SESSION_TIMEOUT_KEY = "sessionTimeout";
+    public static final String ZOOKEEPER_CONNECTION_TIMEOUT_KEY = "connectionTimeout";
+    
+    public static final int ZOOKEEPER_SESSION_TIMEOUT_DEFAULT = 30000;
+    public static final int ZOOKEEPER_CONNECTION_TIMEOUT_DEFAULT = 30000;
+    
+    public static final String KAFKA_TOPIC_KEY = "topic";
+    public static final String KAFKA_PARTITIONS_KEY = "partitions";
+    public static final String KAFKA_REPLICATION_FACTOR_KEY = "replicationFactor";
+    
+    public static final int KAFKA_PARTITIONS_DEFAULT = 1;
+    public static final int KAFKA_REPLICATION_FACTOR_DEFAULT = 1;
     
     public static final int ZK_WAIT_INTERVAL = 10 * 1000;
     

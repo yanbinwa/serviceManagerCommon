@@ -1,6 +1,7 @@
 package yanbinwa.common.kafka.consumer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.log4j.Logger;
 
+import kafka.utils.ZkUtils;
+import yanbinwa.common.constants.CommonConstants;
 import yanbinwa.common.kafka.message.KafkaMessage;
+import yanbinwa.common.utils.KafkaUtil;
 
 public class IKafkaConsumerWorker
 {
@@ -22,6 +26,7 @@ public class IKafkaConsumerWorker
     KafkaConsumer<Object, Object> consumer = null;
     boolean isRunning = false;
     Thread kafkaPollThread = null;
+    String zookeeperHostport = null;
     
     public IKafkaConsumerWorker(Map<String, String> kafkaConsumerProperties, IKafkaCallBack callback)
     {
@@ -33,6 +38,11 @@ public class IKafkaConsumerWorker
         if (listenTopic == null)
         {
             throw new IllegalArgumentException("Listen topic should not be null");
+        }
+        zookeeperHostport = kafkaConsumerProperties.get(IKafkaConsumer.ZOOKEEPER_HOST_PORT_KEY);
+        if (zookeeperHostport == null)
+        {
+            throw new IllegalArgumentException("zookeeperHostport should not be null");
         }
         
         this.callback = callback;
@@ -85,6 +95,7 @@ public class IKafkaConsumerWorker
         {
             logger.info("Kafka consumer start ...");
             isRunning = true;
+            waitTopicCreate();
             buildKafkaConsumer();
             kafkaPollThread = new Thread(new Runnable() {
 
@@ -116,6 +127,7 @@ public class IKafkaConsumerWorker
             ConsumerRecords<Object, Object> records = consumer.poll(IKafkaConsumer.KAFKA_POLL_TIMEOUT);
             if (records == null || records.isEmpty())
             {
+                logger.info("records is none or empty");
                 continue;
             }
             Iterator<ConsumerRecord<Object, Object>> iterator = records.iterator();
@@ -140,6 +152,37 @@ public class IKafkaConsumerWorker
         //这里要在consumer创建的线程中关闭，因为consumer不是线程安全的
         consumer.close();
         consumer = null;
+    }
+    
+    private void waitTopicCreate()
+    {
+        Map<String, Object> zookeeperProperties = new HashMap<String, Object>();
+        zookeeperProperties.put(CommonConstants.ZOOKEEPER_HOSTPORT_KEY, zookeeperHostport);
+        Map<String, Object> kafkaProperties = new HashMap<String, Object>();
+        kafkaProperties.put(CommonConstants.KAFKA_TOPIC_KEY, listenTopic);
+        ZkUtils zkUtils = KafkaUtil.createZkUtils(zookeeperProperties);
+        try
+        {
+            int retry = 0;
+            while(retry < IKafkaConsumer.WAIT_TOPIC_CREATE_RETRY_TIME)
+            {
+                if (KafkaUtil.isTopicExist(zkUtils, kafkaProperties))
+                {
+                    return;
+                }
+                Thread.sleep(IKafkaConsumer.WAIT_TOPIC_CREATE_INTERVAL);
+                retry ++;
+            }
+            logger.info("wait topic create timeout, just create it by consumer");
+        } 
+        catch (InterruptedException e)
+        {
+            logger.error(e.getMessage());
+        }
+        finally
+        {
+            KafkaUtil.closeZkUtils(zkUtils);
+        }
     }
     
     public void shutdown()
