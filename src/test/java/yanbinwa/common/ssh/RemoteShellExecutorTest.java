@@ -4,14 +4,16 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
+
 public class RemoteShellExecutorTest
 {
 
     @Test
     public void test()
     {
-        String cmd = "/bin/sh /root/yanbinwa/test/simpleShell.sh";
-        RemoteShellExecutor executor = new RemoteShellExecutor("192.168.56.17", "root", "Wyb13403408973");
+        String cmd = "/bin/sh /root/yanbinwa/test/remoteShellExecutorTest.sh";
+        RemoteShellExecutor executor = new RemoteShellExecutor(CommonConstantsTest.TEST_SERVER_IP, "root", "emotibot");
         try
         {
             executor.exec(cmd);

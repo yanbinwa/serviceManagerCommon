@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
 import yanbinwa.common.zNodedata.ZNodeDependenceData;
 import yanbinwa.common.zNodedata.ZNodeServiceData;
 import yanbinwa.common.zNodedata.ZNodeServiceDataImpl;
@@ -17,7 +18,7 @@ public class OrchestrationClientImplTest
     @Test
     public void test()
     {
-        String zookeeperHostPort = "192.168.56.17:2181";
+        String zookeeperHostPort = CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT;
         Map<String, String> zNodeProperties = new HashMap<String, String>();
         zNodeProperties.put(OrchestrationClient.REGZNODEPATH_KEY, "/regManageNode");
         zNodeProperties.put(OrchestrationClient.DEPZNODEPATH_KEY, "/depManageNode");

@@ -14,7 +14,7 @@ public class YamlUtilTest
     @Test
     public void test()
     {
-        String fileName = "/Users/yanbinwa/Documents/workspace/springboot/serviceManager/serviceManagerCommon/src/test/file/YamlUtilTest.yaml";
+        String fileName = "/Users/emotibot/Documents/workspace/serviceManager/serviceManagerCommon/src/test/file/YamlUtilTest.yaml";
         Map<String, Object> testMap = new HashMap<String, Object>();
         testMap.put("wyb", "123");
         Map<String, String> testMap1 = new HashMap<String, String>();

@@ -6,15 +6,17 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
+
 public class ScpClientTest
 {
 
     @Test
     public void test()
     {
-        ScpClient client = new ScpClient("192.168.56.17", "root", "Wyb13403408973");
+        ScpClient client = new ScpClient(CommonConstantsTest.TEST_SERVER_IP, "root", "emotibot");
                 
-        String localFile = "/Users/yanbinwa/Documents/workspace/springboot/serviceManager/serviceManagerCommon/README.md";
+        String localFile = "/Users/emotibot/Documents/workspace/serviceManager/serviceManagerCommon/README.md";
         String remoteFile = "/tmp";
         try
         {

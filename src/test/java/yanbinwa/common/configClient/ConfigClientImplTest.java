@@ -5,6 +5,7 @@
 //
 //import org.junit.Test;
 //
+//import yanbinwa.common.constants.CommonConstantsTest;
 //import yanbinwa.common.zNodedata.ZNodeServiceData;
 //import yanbinwa.common.zNodedata.ZNodeServiceDataImpl;
 //
@@ -29,7 +30,7 @@
 //        Map<String, String> zNodeInfoMap = new HashMap<String, String>();
 //        zNodeInfoMap.put("confZnodePath", "/confManageNode");
 //        ConfigCallBack callBack = new ConfigClientImplTestConfigCallback();
-//        ConfigClient client = new ConfigClientImpl(zNodeData, callBack, "192.168.56.17:2181", zNodeInfoMap);
+//        ConfigClient client = new ConfigClientImpl(zNodeData, callBack, CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT, zNodeInfoMap);
 //        client.start();
 //        while(true)
 //        {

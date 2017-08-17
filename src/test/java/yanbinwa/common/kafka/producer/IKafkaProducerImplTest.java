@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
 import yanbinwa.common.kafka.message.KafkaMessage;
 
 public class IKafkaProducerImplTest
@@ -18,7 +19,7 @@ public class IKafkaProducerImplTest
     {
         Map<String, String> kafkaProperties = new HashMap<String, String>();
         
-        kafkaProperties.put(IKafkaProducer.BROKER_LIST_KEY, "192.168.56.17:9092");
+        kafkaProperties.put(IKafkaProducer.BROKER_LIST_KEY, CommonConstantsTest.TEST_KAFKAHOSTPORT);
         kafkaProperties.put(IKafkaProducer.MAX_BLOCK_MS, "1000");
         kafkaProperties.put(IKafkaProducer.RETRY_TIMES_KEY, "0");
         IKafkaProducer producer = new IKafkaProducerImpl(kafkaProperties, "testProducer");

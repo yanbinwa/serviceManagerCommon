@@ -10,6 +10,7 @@ import org.junit.Test;
 import kafka.common.TopicAlreadyMarkedForDeletionException;
 import kafka.utils.ZkUtils;
 import yanbinwa.common.constants.CommonConstants;
+import yanbinwa.common.constants.CommonConstantsTest;
 
 public class KafkaUtilTest
 {
@@ -19,7 +20,7 @@ public class KafkaUtilTest
     {
         String topicName = "wyb_new";
         Map<String, Object> prop = new HashMap<String, Object>();
-        prop.put(CommonConstants.ZOOKEEPER_HOSTPORT_KEY, "192.168.56.17:2181");
+        prop.put(CommonConstants.ZOOKEEPER_HOSTPORT_KEY, CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT);
         prop.put(CommonConstants.KAFKA_TOPIC_KEY, topicName);
         ZkUtils zkUtils = KafkaUtil.createZkUtils(prop);
         try

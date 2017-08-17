@@ -8,6 +8,7 @@ import org.apache.kafka.common.security.JaasUtils;
 import org.apache.log4j.Logger;
 
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
 import yanbinwa.common.constants.CommonConstants;
 import yanbinwa.common.kafka.consumer.IKafkaCallBack;
@@ -204,7 +205,7 @@ public class KafkaUtil
             replicationFactor = (Integer) replicationFactorObj;
         }
         
-        AdminUtils.createTopic(zkUtils, topic, partitions, replicationFactor, new Properties());
+        AdminUtils.createTopic(zkUtils, topic, partitions, replicationFactor, new Properties(), new RackAwareMode.Enforced$());
     }
     
     /**

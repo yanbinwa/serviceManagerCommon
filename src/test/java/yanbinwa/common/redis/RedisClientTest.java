@@ -6,13 +6,15 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
+
 public class RedisClientTest
 {
 
     @Test
     public void test() throws InterruptedException
     {
-        RedisClient rc = new RedisClient("192.168.56.17", 6379, 20, 5, 10000, false);
+        RedisClient rc = new RedisClient(CommonConstantsTest.TEST_SERVER_IP, CommonConstantsTest.TEST_REDIS_PORT, 20, 5, 10000, false);
         
         boolean isGetConnection = rc.getJedisConnection();
         if (!isGetConnection)
@@ -41,7 +43,7 @@ public class RedisClientTest
     @Test
     public void expireTest()
     {
-        RedisClient rc = new RedisClient("192.168.56.17", 6379, 20, 5, 10000, false);
+        RedisClient rc = new RedisClient(CommonConstantsTest.TEST_SERVER_IP, CommonConstantsTest.TEST_REDIS_PORT, 20, 5, 10000, false);
         try
         {
             boolean ret = rc.getJedisConnection();
@@ -72,7 +74,7 @@ public class RedisClientTest
     public void redisConnectionTest() throws InterruptedException
     {
         //这里在获取connection时会阻塞wait的时间，会抛出JedisConnectionException
-        RedisClient rc = new RedisClient("192.168.56.17", 6379, 5, 2, 100, false);
+        RedisClient rc = new RedisClient(CommonConstantsTest.TEST_SERVER_IP, CommonConstantsTest.TEST_REDIS_PORT, 5, 2, 100, false);
         System.out.println("redisConnectionTest start");
         for (int i = 0; i < 5; i ++)
         {
@@ -91,7 +93,7 @@ public class RedisClientTest
     @Test
     public void redisConnectionTest2() 
     {
-        RedisClient rc = new RedisClient("192.168.56.17", 6379, 1, 0, 100, false);
+        RedisClient rc = new RedisClient(CommonConstantsTest.TEST_SERVER_IP, CommonConstantsTest.TEST_REDIS_PORT, 1, 0, 100, false);
         try
         {
             rc.getJedisConnection();

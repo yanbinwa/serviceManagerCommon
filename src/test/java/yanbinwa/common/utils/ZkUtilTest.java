@@ -11,6 +11,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import yanbinwa.common.constants.CommonConstantsTest;
 import yanbinwa.common.utils.ZkUtil;
 import yanbinwa.common.zNodedata.ZNodeServiceData;
 import yanbinwa.common.zNodedata.ZNodeServiceDataImpl;
@@ -30,14 +31,14 @@ public class ZkUtilTest
                 System.out.println(event.toString());
             }
         };
-        zk = ZkUtil.connectToZk("192.168.56.17:2181", wt);
+        zk = ZkUtil.connectToZk(CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT, wt);
         if (zk == null)
         {
             fail("Can not create znode");
         }
         if (zk.getState() == ZooKeeper.States.CONNECTING)
         {
-            System.out.println("Can not connetion to zookeeper " + "192.168.56.17:2181");
+            System.out.println("Can not connetion to zookeeper " + CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT);
             return;
         }
         try
