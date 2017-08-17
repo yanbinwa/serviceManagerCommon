@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import yanbinwa.common.constants.CommonConstantsTest;
 import yanbinwa.common.kafka.message.KafkaMessage;
 
 public class IKafkaConsumerImplTest
@@ -23,8 +22,8 @@ public class IKafkaConsumerImplTest
     public void test()
     {
         Map<String, String> kafkaProperties = new HashMap<String, String>();
-        kafkaProperties.put(IKafkaConsumer.ZOOKEEPER_HOST_PORT_KEY, CommonConstantsTest.TEST_ZOOKEEPERHOSTPORT);
-        kafkaProperties.put(IKafkaConsumer.BROKER_LIST_KEY, CommonConstantsTest.TEST_KAFKAHOSTPORT);
+        kafkaProperties.put(IKafkaConsumer.ZOOKEEPER_HOST_PORT_KEY, "192.168.56.17:2181");
+        kafkaProperties.put(IKafkaConsumer.BROKER_LIST_KEY, "192.168.56.17:9092");
         kafkaProperties.put(IKafkaConsumer.MAX_BLOCK_MS_KEY, "1000");
         kafkaProperties.put(IKafkaConsumer.GROUP_ID_KEY, "test");
         kafkaProperties.put(IKafkaConsumer.LISTEN_TOPIC_KEY, "wyb");
